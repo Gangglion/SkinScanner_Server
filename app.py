@@ -10,7 +10,7 @@ import click
 app = Flask(__name__)
 
 # 모델 경로 설정
-MODEL_FOLDER = "model"
+MODEL_FOLDER = "/SkinScanner/model"
 ENC_MODEL_NAME="model.tflite" # 암호화된 모델 파일명
 ENCRYPTED_MODEL_PATH = os.path.join(MODEL_FOLDER, ENC_MODEL_NAME) # 암호화된 모델 파일 경로
 
@@ -31,7 +31,7 @@ def exchange_key():
             return ApiResponse.error("Request is empty")
         else:
             print(f"클라이언트에서 보내준 공개키 받음 : \n{publicRsaKey}") 
-            file_path = os.path.join('key', 'KeyIv.bin')
+            file_path = os.path.join('/SkinScanner/key', 'KeyIv.bin')
             if not os.path.exists(file_path): # 저장된 AES 키 파일이 없을때
                 return ApiResponse.error("Server Error. Key file does not exist", HTTPStatus.INTERNAL_SERVER_ERROR)
             with open(file_path, "rb") as f:

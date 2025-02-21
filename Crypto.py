@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 import base64
 
-KEY_FOLDER = "key"
+KEY_FOLDER = "/SkinScanner/key"
 KEY_FILE = "KeyIv.bin"
 
 class Crypto:
