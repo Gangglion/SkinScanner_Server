@@ -6,12 +6,16 @@ from ApiResponse import ApiResponse
 from Crypto import Crypto
 import subprocess
 import click
+from dotenv import load_dotenv
+
+# load .env
+load_dotenv()
 
 app = Flask(__name__)
 
 # 모델 경로 설정
-MODEL_FOLDER = "/SkinScanner/model"
-ENC_MODEL_NAME="model.tflite" # 암호화된 모델 파일명
+MODEL_FOLDER = os.getenv("MODEL_PATH")
+ENC_MODEL_NAME = os.getenv("ENC_MODEL_NAME") # 암호화된 모델 파일명
 ENCRYPTED_MODEL_PATH = os.path.join(MODEL_FOLDER, ENC_MODEL_NAME) # 암호화된 모델 파일 경로
 
 @app.route('/')
@@ -24,6 +28,8 @@ def welcomeFlask():
 @app.route('/exchangeKey', methods=['POST'])
 def exchange_key():
     params = request.get_json()
+    key_path = os.getenv("KEY_PATH")
+    key_name = os.getenv("KEY_NAME")
     try:
         publicRsaKey = params["pKey"]
         crypto = Crypto()
@@ -31,7 +37,7 @@ def exchange_key():
             return ApiResponse.error("Request is empty")
         else:
             print(f"클라이언트에서 보내준 공개키 받음 : \n{publicRsaKey}") 
-            file_path = os.path.join('/SkinScanner/key', 'KeyIv.bin')
+            file_path = os.path.join(key_path, key_name)
             if not os.path.exists(file_path): # 저장된 AES 키 파일이 없을때
                 return ApiResponse.error("Server Error. Key file does not exist", HTTPStatus.INTERNAL_SERVER_ERROR)
             with open(file_path, "rb") as f:
@@ -71,7 +77,8 @@ def file_hash_check():
 @click.argument("bucket_name")
 def run_upload_file(bucket_name):
     print("Uploading...")
-    result = subprocess.run(["python", "upload_file.py", bucket_name], capture_output=True, text=True)
+    upload_file_path = os.getenv("UPLOAD_FILE_PATH")
+    result = subprocess.run(["python", upload_file_path, bucket_name], capture_output=True, text=True)
     print(result.stdout)
     if result.stderr:
         print(f"에러가 발생했습니다 : {result.stderr}")

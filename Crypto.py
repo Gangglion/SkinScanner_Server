@@ -5,9 +5,13 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 import base64
+from dotenv import load_dotenv
 
-KEY_FOLDER = "/SkinScanner/key"
-KEY_FILE = "KeyIv.bin"
+# load .env
+load_dotenv()
+
+KEY_FOLDER = os.getenv("KEY_PATH")
+KEY_FILE = os.getenv("KEY_NAME")
 
 class Crypto:
     def calculate_file_hash(self, file_path, algorithm="sha256"):
@@ -28,8 +32,8 @@ class Crypto:
         with open(full_path, "rb") as f:
             key = f.read(32)
             iv = f.read(16)
-        print(f"Loaded AES Key : {key.hex()}")
-        print(f"Loaded IV : {iv.hex()}")
+        # print(f"Loaded AES Key : {key.hex()}")
+        # print(f"Loaded IV : {iv.hex()}")
         return key, iv
         
     def encryptAES(self, file_path):

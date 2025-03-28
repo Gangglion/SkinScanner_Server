@@ -5,12 +5,16 @@ import boto3
 import sys
 from boto3.s3.transfer import S3Transfer
 from botocore.exceptions import NoCredentialsError
+from dotenv import load_dotenv
+
+# load .env
+load_dotenv()
 
 # 모델 경로 설정
-MODEL_FOLDER = "model"
-MODEL_NAME = "model.tflite"
+MODEL_FOLDER = os.getenv("MODEL_PATH")
+MODEL_NAME = os.getenv("MODEL_NAME")
 MODEL_PATH = os.path.join(MODEL_FOLDER, MODEL_NAME)
-ENC_MODEL_NAME="encrypted_model.tflite" # 암호화된 모델 파일명
+ENC_MODEL_NAME = os.getenv("ENC_MODEL_NAME") # 암호화된 모델 파일명
 ENCRYPTED_MODEL_PATH = os.path.join(MODEL_FOLDER, ENC_MODEL_NAME) # 암호화된 모델 파일 경로
 
 if len(sys.argv) > 2:
@@ -33,23 +37,31 @@ class ProcessPercentage(object):
         """업로드 되는 동안 주기적으로 호출되어 퍼센트를 알려줌"""
         self.bytes_uploaded += bytes_amount
         progress = float(self.bytes_uploaded) / self.size * 100
-        sys.stdout.write(f"upload {self.filename} : {progress:.2f}%")
+        sys.stdout.write(f"upload {self.filename} : {progress:.2f}%\n")
         sys.stdout.flush()
         
 # S3로 파일 업로드
 def upload_to_s3(filename, object_name=None):
     """S3 로 파일 업로드"""
     if object_name is None:
-        object_name = filename
-    s3_client = boto3.client('s3')
+        object_name = ENC_MODEL_NAME
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_region = os.getenv("AWS_REGION")
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id = aws_access_key_id,
+        aws_secret_access_key = aws_secret_access_key,
+        region_name = aws_region
+    )
     transfer = S3Transfer(s3_client)
     
     try:
         print("Starting file Upload")
         transfer.upload_file(filename, bucket_name, object_name, callback = ProcessPercentage(filename))
         print("\nUpload completed")
-    except NoCredentialsError:
-        print("Credentials not available")
+    except NoCredentialsError as credentialsError:
+        print(f"Credentials not available : {credentialsError}")
     except Exception as e:
         print(f"Error uploading file : {e}")
         
